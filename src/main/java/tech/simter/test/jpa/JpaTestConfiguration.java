@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 
 /**
  * Extend {@link HibernateJpaAutoConfiguration} to make it support config concrete entity classes.
- * <p>
  * <pre>
  *   Example:
  *

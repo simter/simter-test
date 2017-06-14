@@ -22,6 +22,7 @@ public @interface EntityScan {
    * Add managed class to the persistence provider's metadata.
    *
    * @see javax.persistence.spi.PersistenceUnitInfo#getManagedClassNames()
+   * @return managed classes
    */
   Class<?>[] value() default {};
 }
