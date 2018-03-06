@@ -1,21 +1,13 @@
 package tech.simter.test.jpa;
 
-import org.springframework.beans.BeansException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
-import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.transaction.jta.JtaTransactionManager;
-
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
+import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 
 /**
  * Extend {@link HibernateJpaAutoConfiguration} to make it support config concrete entity classes.
@@ -32,35 +24,23 @@ import javax.sql.DataSource;
  *     ...
  *   }
  * </pre>
+ * <p>
+ * See <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#jpa-and-spring-data">Spring-Boot-2.0-Migration-Guide For JPA-and-Spring-Data</a>.
  *
  * @author RJ
  */
 @TestConfiguration
-public class JpaTestConfiguration extends HibernateJpaAutoConfiguration {
+public class JpaTestConfiguration {
+  private static final Logger logger = LoggerFactory.getLogger(JpaTestConfiguration.class);
   private BeanFactory beanFactory;
 
-  public JpaTestConfiguration(DataSource dataSource, JpaProperties jpaProperties,
-                              ObjectProvider<JtaTransactionManager> jtaTransactionManager,
-                              ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers) {
-    super(dataSource, jpaProperties, jtaTransactionManager, transactionManagerCustomizers);
-  }
-
-  @Override
-  public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-    super.setBeanFactory(beanFactory);
+  public JpaTestConfiguration(BeanFactory beanFactory) {
     this.beanFactory = beanFactory;
   }
 
-  @Bean
+  @Bean("persistenceUnitManager")
   @Primary
-  @ConditionalOnMissingBean({LocalContainerEntityManagerFactoryBean.class, EntityManagerFactory.class})
-  public LocalContainerEntityManagerFactoryBean entityManagerFactory(EntityManagerFactoryBuilder factoryBuilder) {
-    LocalContainerEntityManagerFactoryBean bean = super.entityManagerFactory(factoryBuilder);
-    bean.setPersistenceUnitPostProcessors(persistenceUnit ->
-      EntityScanClasses.get(this.beanFactory).getEntityClasses().forEach(entityClass ->
-        persistenceUnit.addManagedClassName(entityClass.getName())
-      )
-    );
-    return bean;
+  public PersistenceUnitManager persistenceUnitManager() {
+    return new SimterPersistenceUnitManager(EntityScanClasses.get(this.beanFactory).getEntityClasses());
   }
 }
