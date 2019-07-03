@@ -73,5 +73,10 @@
       <groupId>tech.simter</groupId>
       <artifactId>simter-rest-jaxrs</artifactId>
     </dependency>
+    <dependency>
+      <groupId>tech.simter</groupId>
+      <artifactId>simter-genson-ext</artifactId>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 </project>
